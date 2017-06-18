@@ -36,14 +36,19 @@ isPrime number
     where
     sqrtNumber = 1 + (truncate (sqrt (fromIntegral number)))
 
+-- Return the seed generated from doing Random.random with 'seed' 'iter' many times.
+--generateNewSeed :: Random.StdGen -> Int -> Random.StdGen
+--generateNewSeed seed 0 = seed
+--generateNewSeed seed iter = generateNewSeed newSeed (iter-1)
+--                            where
+--                            (_,newSeed) = Random.random seed
+
 -- Try to generate a prime of b bits using a random seed.
 generatePrime :: Int -> Random.StdGen -> Integer
 generatePrime b seed =
   let number = generateBitNumber b seed
       searchResult = searchForPrime number (2*b)
-      newSeed = generateNewSeed seed b
-      generateNewSeed s 0 = s
-      generateNewSeed s iter = generateNewSeed (snd (Random.random s)) (iter-1)
+      newSeed = Random.mkStdGen (fst (Random.random seed))
   in if isPrime number then number
      else if searchResult /= Nothing then (\(Just x) -> x) searchResult
      else generatePrime b newSeed
