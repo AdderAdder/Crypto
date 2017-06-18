@@ -52,15 +52,20 @@ getPrime n
                 sieve m (x:xs) = sieve (m-1) (xs List.\\ [x,x+x..10000])
 
 isPrime :: Integer -> Bool
-isPrime number = True
+isPrime number
+  | mod number 2 == 0 = (number == 2)
+  | mod number 3 == 0 = (number == 3)
+  | otherwise = foldl (\prime val -> if (mod number (val-1) == 0) || (mod number (val+1) == 0) then prime && False else prime && True) True [6,12..sqrtNumber]
+    where
+    sqrtNumber = 1 + (truncate (sqrt (fromIntegral number)))
 
 generatePrime :: Int -> Random.StdGen -> Maybe Integer
 generatePrime b seed =
   let number = generateBitNumber b seed
       searchResult = searchForPrime number (2*b) number
   in if isPrime number then Just number
-     else if searchResult /= number then Just searchResult
      else Nothing
+     --else if searchResult /= number then Just searchResult
 
 generateBitNumber :: Int -> Random.StdGen -> Integer
 generateBitNumber b seed = (Bits.setBit num 0) :: Integer
