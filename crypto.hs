@@ -62,10 +62,10 @@ isPrime number
 generatePrime :: Int -> Random.StdGen -> Maybe Integer
 generatePrime b seed =
   let number = generateBitNumber b seed
-      searchResult = searchForPrime number (2*b) number
+      searchResult = searchForPrime number (2*b)
   in if isPrime number then Just number
+     else if searchResult /= Nothing then searchResult
      else Nothing
-     --else if searchResult /= number then Just searchResult
 
 generateBitNumber :: Int -> Random.StdGen -> Integer
 generateBitNumber b seed = (Bits.setBit num 0) :: Integer
@@ -73,5 +73,8 @@ generateBitNumber b seed = (Bits.setBit num 0) :: Integer
                  randPos = map (\x -> mod x b) (take b (Random.randoms seed))
                  num = foldl (\bits pos -> Bits.setBit bits pos) (Bits.bit (b-1)) randPos
 
-searchForPrime :: Integer -> Int -> Integer -> Integer
-searchForPrime number iteration basecase = basecase
+searchForPrime :: Integer -> Int -> Maybe Integer
+searchForPrime _ 0 = Nothing
+searchForPrime number iteration
+  | isPrime (number+2) = Just (number+2)
+  | otherwise = searchForPrime (number+2) (iteration-1)
