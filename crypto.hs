@@ -1,6 +1,11 @@
 import qualified System.Environment as Sys
 import qualified Data.List as List
 import qualified System.Random as Random
+import qualified Data.Bits as Bits
+-- Just only for debugging purpose, remove in final version
+-- To print binary representation use command: showIntAtBase 2 intToDigit number ""
+import Numeric (showIntAtBase)
+import Data.Char (intToDigit)
 
 main = do args <- Sys.getArgs
           process args
@@ -45,3 +50,23 @@ getPrime n
                 where
                 sieve 2 (x:xs) = x
                 sieve m (x:xs) = sieve (m-1) (xs List.\\ [x,x+x..10000])
+
+isPrime :: Integer -> Bool
+isPrime number = True
+
+generatePrime :: Int -> Random.StdGen -> Maybe Integer
+generatePrime b seed =
+  let number = generateBitNumber b seed
+      searchResult = searchForPrime number (2*b) number
+  in if isPrime number then Just number
+     else if searchResult /= number then Just searchResult
+     else Nothing
+
+generateBitNumber :: Int -> Random.StdGen -> Integer
+generateBitNumber b seed = (Bits.setBit num 0) :: Integer
+                 where
+                 randPos = map (\x -> mod x b) (take b (Random.randoms seed))
+                 num = foldl (\bits pos -> Bits.setBit bits pos) (Bits.bit (b-1)) randPos
+
+searchForPrime :: Integer -> Int -> Integer -> Integer
+searchForPrime number iteration basecase = basecase
