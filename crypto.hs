@@ -8,25 +8,24 @@ import Numeric (showIntAtBase)
 import Data.Char (intToDigit)
 import Debug.Trace (trace)
 
--- Datastructure to hold if we are encrypting or decrypting
-data Mode = Encrypt | Decrypt deriving (Read)
-
 main = do args <- Sys.getArgs
           process args
 
 -- Process the command line arguments and takes appropriate action for each scenario.
 process :: [String] -> IO()
-process (mode:fileName:[]) = do file <- (readFile fileName)
-                                seedFirstPrime <- Random.newStdGen
-                                randSeed <- Random.newStdGen
-                                let (n,e,d) = generateKey seedFirstPrime randSeed
-                                rsa (read mode) file n 5
-process (mode:fileName:n:c:[]) = do file <- (readFile fileName)
-                                    rsa (read mode) file (read n :: Integer) (read c :: Integer)
-process _ = putStrLn "Error when parsing argument.\nPlease enter either 'Encrypt' or 'Decrypt' followed by a filepath to file that you wish to encrypt.\nOptionally the key to use for encryption/decryption can also be specified on format 'mode fileToEncrypt n c'."
+process (fileName:[]) = do file <- (readFile fileName)
+                           seedFirstPrime <- Random.newStdGen
+                           randSeed <- Random.newStdGen
+                           let (n,e,d) = generateKey seedFirstPrime randSeed
+                           writeFile "rsaEncryptionKey.txt" $ (show n) ++ " " ++ (show e)
+                           writeFile "rsaDecryptionKey.txt" $ (show n) ++ " " ++ (show d)
+                           rsa file n e
+process (fileName:n:c:[]) = do file <- (readFile fileName)
+                               rsa file (read n :: Integer) (read c :: Integer)
+process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decrypt a file) use format 'fileToEncrypt productOfPrime exponent'."
 
-rsa :: Mode -> String -> Integer -> Integer -> IO()
-rsa mode content n c = print "Done"
+rsa :: String -> Integer -> Integer -> IO()
+rsa content n c = print "Done"
 
 -- Based on the code sample from https://rosettacode.org/wiki/Modular_inverse#Haskell
 -- A more detailed description of how the algorithm works can be found at https://stackoverflow.com/questions/12544086/calculate-the-extended-gcd-using-a-recursive-function-in-python
