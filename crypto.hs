@@ -31,10 +31,10 @@ rsa content n c = print "Done"
 -- A more detailed description of how the algorithm works can be found at https://stackoverflow.com/questions/12544086/calculate-the-extended-gcd-using-a-recursive-function-in-python
 -- Output is on the form (cofNum1,cofNum2,gcd)
 extendedGCD :: Integer -> Integer -> (Integer,Integer,Integer)
-extendedGCD num 0 = trace ("num=" ++ show num) (1,0,num)
+extendedGCD num 0 = (1,0,num)
 extendedGCD num1 num2 = let (quot,rem) = quotRem num1 num2
                             (cof1,cof2,gcdAns) = extendedGCD num2 rem
-                        in trace (show num1 ++ " " ++ show num2 ++ " -> (" ++ show cof2 ++ "," ++ show (cof1-quot*cof2) ++ "," ++ show gcdAns ++ ")") (cof2,cof1-quot*cof2,gcdAns)
+                        in (cof2,cof1-quot*cof2,gcdAns)
 
 -- Based on the code sample from https://rosettacode.org/wiki/Modular_inverse#Haskell
 -- Output the value x that solve num1*x = 1 (mod num 2)
