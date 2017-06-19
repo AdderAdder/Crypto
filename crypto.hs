@@ -8,6 +8,10 @@ import Numeric (showIntAtBase)
 import Data.Char (intToDigit)
 import Debug.Trace (trace)
 
+data Mode = Encrypt | Decrypt deriving (Read,Eq)
+
+primeNumberBitLength = 25
+
 main = do args <- Sys.getArgs
           process args
 
@@ -19,13 +23,25 @@ process (fileName:[]) = do file <- (readFile fileName)
                            let (n,e,d) = generateKey seedFirstPrime randSeed
                            writeFile "rsaEncryptionKey.txt" $ (show n) ++ " " ++ (show e)
                            writeFile "rsaDecryptionKey.txt" $ (show n) ++ " " ++ (show d)
-                           rsa file n e
-process (fileName:n:c:[]) = do file <- (readFile fileName)
-                               rsa file (read n :: Integer) (read c :: Integer)
-process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decrypt a file) use format 'fileToEncrypt productOfPrime exponent'."
+                           writeFile ("encrypt" ++ fileName) (rsa Encrypt file n e)
+process (mode:fileName:n:c:[]) = do file <- (readFile fileName)
+                                    writeFile newFileName (rsa (read mode) file (read n :: Integer) (read c :: Integer))
+                                    where
+                                    newFileName = if (read mode) == Encrypt then "encrypt" ++ fileName else "decrypt" ++ fileName
+process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decryption) use format 'Encrypt/Decrupt fileToEncrypt productOfPrime exponent'."
 
-rsa :: String -> Integer -> Integer -> IO()
-rsa content n c = print "Done"
+-- Encryption/decryption (depending on what mode is given as parameter) of the content.
+-- Note that padding is doen to the content so it can be choped up into equally
+-- sized pieces.
+rsa :: Mode -> String -> Integer -> Integer -> String
+rsa Encrypt file n e = unlines encryption
+                      where
+                      content = map (fromIntegral . fromEnum) file
+                      encryption = map (\x -> show x) $ map (\x -> mod (x^e) n) content
+rsa Decrypt file n d = decryption
+                      where
+                      content = map read $ lines file
+                      decryption = map (toEnum) $ map (\x -> fromIntegral (mod (x^d) n)) content
 
 -- Based on the code sample from https://rosettacode.org/wiki/Modular_inverse#Haskell
 -- A more detailed description of how the algorithm works can be found at https://stackoverflow.com/questions/12544086/calculate-the-extended-gcd-using-a-recursive-function-in-python
@@ -47,9 +63,9 @@ multiplicativeInverse num1 num2 = let (x,_,gcdAns) = extendedGCD num1 num2
 -- on the form (n,e,d). (n,e) is used for encryption and (n,d) is used for decryption.
 generateKey :: Random.StdGen -> Random.StdGen -> (Integer,Integer,Integer)
 generateKey seedFirstPrime randSeed =
-  let p = generatePrime 42 seedFirstPrime
-      seedSecondPrime = until (\x -> (generatePrime 42 x) /= p) (Random.mkStdGen . fst . Random.random) randSeed
-      q = generatePrime 42 seedSecondPrime
+  let p = generatePrime primeNumberBitLength seedFirstPrime
+      seedSecondPrime = until (\x -> (generatePrime primeNumberBitLength x) /= p) (Random.mkStdGen . fst . Random.random) randSeed
+      q = generatePrime primeNumberBitLength seedSecondPrime
       phi = (p-1)*(q-1)
       seedE = until (\x -> gcd (fst (Random.randomR (3,phi-1) x)) phi == 1) (Random.mkStdGen . fst . Random.random) randSeed
       e = (fst (Random.randomR (3,phi-1) seedE))
