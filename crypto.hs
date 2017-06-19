@@ -83,7 +83,7 @@ generateBitNumber b seed = (Bits.setBit num 0) :: Integer
                  num = foldl (\bits pos -> Bits.setBit bits pos) (Bits.bit (b-1)) randPos
 
 -- Searches if there is a prime close to the 'number' argument.
--- Note that the 'iteration' argument should not be too large as searching is a
+-- Note that the 'iteration' argument should not be too large as searching is an
 -- expensive procedure.
 searchForPrime :: Integer -> Int -> Maybe Integer
 searchForPrime _ 0 = Nothing
