@@ -2,7 +2,8 @@ import qualified System.Environment as Sys
 import qualified Data.List as List
 import qualified System.Random as Random
 import qualified Data.Bits as Bits
-import qualified Data.ByteString.Lazy as ByteS
+import qualified Data.ByteString as ByteS
+import Data.ByteString.Builder (integerDec,toLazyByteString)
 import GenerateKey (generateKey)
 -- Used for debugging purpose, remove in final version.
 -- To print binary representation use command: showIntAtBase 2 intToDigit number ""
@@ -12,6 +13,7 @@ import Debug.Trace (trace)
 
 data Mode = Encrypt | Decrypt deriving (Read,Eq)
 
+main :: IO()
 main = do args <- Sys.getArgs
           process args
 
@@ -30,24 +32,24 @@ process (mode:fileName:n:c:[]) = do file <- (ByteS.readFile fileName)
                                     newFileName = if (read mode) == Encrypt then "encrypt" ++ fileName else "decrypt" ++ fileName
 process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decryption) use format 'Encrypt/Decrupt fileToEncrypt productOfPrime exponent'."
 
--- Returns a bit representation of the value passed as first argument.
--- Second argument shoule preferably be the result of 'sizeof val'.
---toBits :: (Bits.Bits b) => a -> Int -> b -> b
-toBits _ (-1) ans = ans
-toBits val bitPos bit = toBits val (bitPos-1) newBit
-                        where newBit = if (Bits.testBit val bitPos) then Bits.setBit bit bitPos else Bits.clearBit bit bitPos
+powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
+                  where rec = powMod (mod (num*num) n) (div exp 2) n
 
 -- Encryption/decryption (depending on what mode is given as parameter) of the content.
--- Note that padding is doen to the content so it can be choped up into equally
--- sized pieces.
+-- Note that padding is done to the content so it can be choped up into bytes.
 rsa :: Mode -> ByteS.ByteString -> Integer -> Integer -> ByteS.ByteString
-rsa Encrypt file n e = ByteS.append encryptedChunk (rsa Encrypt (ByteS.drop (fromIntegral q) file) n e)
-                      where
-                      blockSize = ceiling $ logBase 2 $ fromIntegral n
-                      (q,r) = quotRem blockSize 8
-                      chunk = (ByteS.foldl (\bitRep w -> (toBits w 7 Bits.zeroBits) Bits..|. (Bits.shift bitRep 8)) Bits.zeroBits (ByteS.take (fromIntegral q) file))
-                      tmpChunk = fromIntegral (Bits.shiftR (8-r) (Bits.shiftL (8-r) (mod (chunk^e) (fromIntegral n))))
-                      encryptedChunk = tmpChunk :: ByteS.ByteString
-                      --chunk = ByteS.take q file
-                      --chunk = (ByteS.foldl (\bitRep w -> Bits.(.|.) w (Bits.shift bitRep 8)) Bits.zeroBits (take q file)) :: Integer
-                      --encryptedChunk = mod (chunk^e) n
+rsa Encrypt file n exp
+ | file == ByteS.empty = ByteS.empty
+ | otherwise = trace ("Recursive call!") $ ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
+              where
+              blockSize = floor $ logBase 2 $ fromIntegral n
+              (tmp,r) = quotRem blockSize 8
+              q = fromIntegral tmp
+              bitNum = ByteS.foldl (\acc w -> Bits.shift ((fromIntegral w) Bits..|. acc) 8 :: Integer) Bits.zeroBits (ByteS.take q file)
+              num = fromIntegral bitNum :: Integer
+              offset = 8-r
+              encryptNum = Bits.shiftR (Bits.shiftL (fromIntegral (powMod num exp n)) offset :: Integer) offset
+              byteEncryptedNum = trace (show q) $ (ByteS.pack . map fromIntegral) $ reverse $ numToByteString encryptNum (q+1)
+              numToByteString :: Integer -> Int -> [Int]
+              numToByteString _ 0 = []
+              numToByteString num iter = (fromIntegral (255 Bits..&. num)):(numToByteString (Bits.shiftR num 8) (iter-1))
