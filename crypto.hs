@@ -32,25 +32,25 @@ process (mode:fileName:n:c:[]) = do file <- (ByteS.readFile fileName)
                                     newFileName = if (read mode) == Encrypt then "encrypt" ++ fileName else "decrypt" ++ fileName
 process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decryption) use format 'Encrypt/Decrupt fileToEncrypt productOfPrime exponent'."
 
-powMod num 0 _ = num
+powMod num 0 _ = 1
 powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
-                  where rec = trace ("Exp: " ++ show exp) $ powMod (mod (num*num) n) (div exp 2) n
+                  where rec = powMod (mod (num*num) n) (div exp 2) n
 
 -- Encryption/decryption (depending on what mode is given as parameter) of the content.
 -- Note that padding is done to the content so it can be choped up into bytes.
 rsa :: Mode -> ByteS.ByteString -> Integer -> Integer -> ByteS.ByteString
-rsa Encrypt file n exp
+rsa mode file n exp
  | file == ByteS.empty = ByteS.empty
- | otherwise = trace ("Recursive call!") $ ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
+ | otherwise = ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
               where
               blockSize = floor $ logBase 2 $ fromIntegral n
               (tmp,r) = quotRem blockSize 8
-              q = fromIntegral tmp
+              q = if mode == Encrypt then fromIntegral tmp else fromIntegral (tmp+1)
               bitNum = ByteS.foldl (\acc w -> Bits.shift ((fromIntegral w) Bits..|. acc) 8 :: Integer) Bits.zeroBits (ByteS.take q file)
               num = fromIntegral bitNum :: Integer
               offset = 8-r
               encryptNum = Bits.shiftR (Bits.shiftL (fromIntegral (powMod num exp n)) offset :: Integer) offset
-              byteEncryptedNum = trace (show q) $ (ByteS.pack . map fromIntegral) $ reverse $ numToByteString encryptNum (q+1)
+              byteEncryptedNum = (ByteS.pack . map fromIntegral) $ reverse $ numToByteString encryptNum (q+1)
               numToByteString :: Integer -> Int -> [Int]
               numToByteString _ 0 = []
               numToByteString num iter = (fromIntegral (255 Bits..&. num)):(numToByteString (Bits.shiftR num 8) (iter-1))
