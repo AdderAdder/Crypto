@@ -2,7 +2,7 @@ import qualified System.Environment as Sys
 import qualified Data.List as List
 import qualified System.Random as Random
 import qualified Data.Bits as Bits
-import qualified Data.ByteString as ByteS
+import qualified Data.ByteString.Lazy as ByteS
 import Data.ByteString.Builder (integerDec,toLazyByteString)
 import GenerateKey (generateKey)
 -- Used for debugging purpose, remove in final version.
@@ -32,7 +32,8 @@ process (mode:fileName:n:c:[]) = do file <- (ByteS.readFile fileName)
                                     newFileName = if (read mode) == Encrypt then "encrypt" ++ fileName else "decrypt" ++ fileName
 process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decryption) use format 'Encrypt/Decrupt fileToEncrypt productOfPrime exponent'."
 
-powMod num 0 _ = 1
+powMod :: Integer -> Integer -> Integer -> Integer
+powMod _ 0 _ = 1
 powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
                   where rec = powMod (mod (num*num) n) (div exp 2) n
 
@@ -44,13 +45,13 @@ rsa mode file n exp
  | otherwise = ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
               where
               blockSize = floor $ logBase 2 $ fromIntegral n
-              (tmp,r) = quotRem blockSize 8
-              q = if mode == Encrypt then fromIntegral tmp else fromIntegral (tmp+1)
-              bitNum = ByteS.foldl (\acc w -> Bits.shift ((fromIntegral w) Bits..|. acc) 8 :: Integer) Bits.zeroBits (ByteS.take q file)
+              tmp = div blockSize 8
+              q = if mode == Encrypt then tmp else (tmp+1)
+              bitNum = ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take q file)
               num = fromIntegral bitNum :: Integer
-              offset = 8-r
-              encryptNum = Bits.shiftR (Bits.shiftL (fromIntegral (powMod num exp n)) offset :: Integer) offset
-              byteEncryptedNum = (ByteS.pack . map fromIntegral) $ reverse $ numToByteString encryptNum (q+1)
-              numToByteString :: Integer -> Int -> [Int]
+              encryptNum = fromIntegral (powMod num exp n) :: Integer
+              byteSizeOfEncrypt = fromIntegral  $ if mode == Encrypt then q+1 else q-1
+              byteEncryptedNum = trace ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) $ reverse $ numToByteString encryptNum byteSizeOfEncrypt
+              numToByteString :: Integer -> Integer -> [Int]
               numToByteString _ 0 = []
               numToByteString num iter = (fromIntegral (255 Bits..&. num)):(numToByteString (Bits.shiftR num 8) (iter-1))
