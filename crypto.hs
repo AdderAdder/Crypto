@@ -5,11 +5,22 @@ import qualified Data.Bits as Bits
 import qualified Data.ByteString.Lazy as ByteS
 import Data.Int (Int64)
 import GenerateKey (generateKey)
+
 -- Used for debugging purpose, remove in final version.
 -- To print binary representation use command: showIntAtBase 2 intToDigit number ""
 import Numeric (showIntAtBase)
 import Data.Char (intToDigit)
 import Debug.Trace (trace)
+
+-- Constant variable indicating if we are in debug-mode.
+debugConst = False
+
+debug :: String -> a -> a
+debug message expression
+  | debugConst = trace message expression
+  | otherwise = expression
+
+-- Here the actual program start.
 
 data Mode = Encrypt | Decrypt deriving (Read,Eq)
 
@@ -52,12 +63,12 @@ rsa mode file n exp = rsa' file n exp chunkSize byteSizeOfAns
 rsa' :: ByteS.ByteString -> Integer -> Integer -> Int64 -> Integer -> ByteS.ByteString
 rsa' file n exp chunk bytes
  | file == ByteS.empty = ByteS.empty
- | otherwise = trace ("Append chunk of bytestring: " ++ show byteEncryptedNum) $ ByteS.append byteEncryptedNum (rsa' (ByteS.drop chunk file) n exp chunk bytes)
+ | otherwise = debug ("Append chunk of bytestring: " ++ show byteEncryptedNum) $ ByteS.append byteEncryptedNum (rsa' (ByteS.drop chunk file) n exp chunk bytes)
               where
-              bitNum = trace ("Chunk of bytestring: " ++ show (ByteS.take chunk file)) $ ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take chunk file)
+              bitNum = debug ("Chunk of bytestring: " ++ show (ByteS.take chunk file)) $ ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take chunk file)
               num = fromIntegral bitNum :: Integer
-              encryptNum = trace ("Num: " ++ show num) $ fromIntegral (powMod num exp n) :: Integer
-              byteEncryptedNum = trace ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) $ numToByteArray encryptNum bytes
+              encryptNum = debug ("Num: " ++ show num) $ fromIntegral (powMod num exp n) :: Integer
+              byteEncryptedNum = debug ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) $ numToByteArray encryptNum bytes
 
 -- Transform a large integer to an array of ints (that are 1 byte each).
 numToByteArray :: Integer -> Integer -> [Int]
