@@ -49,7 +49,7 @@ rsa mode file n exp
               q = if mode == Encrypt then tmp else (tmp+1)
               bitNum = ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take q file)
               num = fromIntegral bitNum :: Integer
-              encryptNum = fromIntegral (powMod num exp n) :: Integer
+              encryptNum = trace ("Num: " ++ show num) $ fromIntegral (powMod num exp n) :: Integer
               byteSizeOfEncrypt = fromIntegral  $ if mode == Encrypt then q+1 else q-1
               byteEncryptedNum = trace ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) $ reverse $ numToByteString encryptNum byteSizeOfEncrypt
               numToByteString :: Integer -> Integer -> [Int]
