@@ -38,20 +38,30 @@ powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
                   where rec = powMod (mod (num*num) n) (div exp 2) n
 
 -- Encryption/decryption (depending on what mode is given as parameter) of the content.
--- Note that padding is done to the content so it can be choped up into bytes.
 rsa :: Mode -> ByteS.ByteString -> Integer -> Integer -> ByteS.ByteString
-rsa mode file n exp
+rsa mode file n exp = rsa' file n exp chunkSize byteSizeOfAns
+                    where
+                    blockSize = floor $ logBase 2 $ fromIntegral n
+                    tmp = div blockSize 8 :: Integer
+                    chunkSize = if mode == Encrypt then tmp else (tmp+1)
+                    byteSizeOfAns = fromIntegral  $ if mode == Encrypt then chunkSize+1 else chunkSize-1
+
+-- Core function of rsa that recursively takes a chunk of the data and apply rsa
+-- encryption/decryption on that chunk. Then the new number is transformed into
+-- a bytestring.
+rsa' :: ByteS.ByteString -> Integer -> Integer -> Integer -> ByteS.ByteString
+rsa' file n exp chunk bytes
  | file == ByteS.empty = ByteS.empty
  | otherwise = trace ("Append chunk of bytestring: " ++ show byteEncryptedNum) $ ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
               where
-              blockSize = floor $ logBase 2 $ fromIntegral n
-              tmp = div blockSize 8
-              q = if mode == Encrypt then tmp else (tmp+1)
-              bitNum = trace ("Chunk of bytestring: " ++ show (ByteS.take q file)) $ ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take q file)
+              bitNum = trace ("Chunk of bytestring: " ++ show (ByteS.take chunk file)) $ ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take chunk file)
               num = fromIntegral bitNum :: Integer
               encryptNum = trace ("Num: " ++ show num) $ fromIntegral (powMod num exp n) :: Integer
-              byteSizeOfEncrypt = fromIntegral  $ if mode == Encrypt then q+1 else q-1
-              byteEncryptedNum = trace ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) $ reverse $ numToByteString encryptNum byteSizeOfEncrypt
-              numToByteString :: Integer -> Integer -> [Int]
-              numToByteString _ 0 = []
-              numToByteString num iter = (fromIntegral (255 Bits..&. num)):(numToByteString (Bits.shiftR num 8) (iter-1))
+              byteEncryptedNum = trace ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) numToByteArray encryptNum bytes
+
+-- Transform a large integer to an array of ints (that are 1 byte each).
+numToByteArray :: Integer -> Integer -> [Int]
+numToByteArray num iter = reverse $ numToIntArray num iter
+                        where
+                        numToIntArray _ 0 = []
+                        numToIntArray num iter = (fromIntegral (255 Bits..&. num)):(numToByteString (Bits.shiftR num 8) (iter-1))
