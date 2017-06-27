@@ -5,7 +5,7 @@ import qualified Data.Bits as Bits
 import qualified Data.ByteString.Lazy as ByteS
 import Data.Int (Int64)
 import GenerateKey (generateKey)
-
+import PrimeNumberGenerator (powMod)
 -- Used for debugging purpose, remove in final version.
 -- To print binary representation use command: showIntAtBase 2 intToDigit number ""
 import Numeric (showIntAtBase)
@@ -42,11 +42,6 @@ process (mode:fileName:n:c:[]) = do file <- (ByteS.readFile fileName)
                                     where
                                     newFileName = if (read mode) == Encrypt then "encrypted_" ++ fileName else "decrypted_" ++ fileName
 process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption/decryption use format\n'Encrypt/Decrypt fileToEncrypt moduloNumber exponent'."
-
-powMod :: Integer -> Integer -> Integer -> Integer
-powMod _ 0 _ = 1
-powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
-                  where rec = powMod (mod (num*num) n) (div exp 2) n
 
 -- Encryption/decryption (depending on what mode is given as parameter) of the content.
 rsa :: Mode -> ByteS.ByteString -> Integer -> Integer -> ByteS.ByteString
