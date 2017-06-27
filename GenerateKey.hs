@@ -32,5 +32,6 @@ generateKey seedFirstPrime randSeed =
       phi = (p-1)*(q-1)
       seedE = until (\x -> gcd (fst (Random.randomR (3,phi-1) x)) phi == 1) (Random.mkStdGen . fst . Random.random) randSeed
       e = (fst (Random.randomR (3,phi-1) seedE))
-      d = multiplicativeInverse e phi
+      tmp = multiplicativeInverse e phi
+      d = if tmp < 0 then phi+tmp else tmp
   in (p*q,e,d)

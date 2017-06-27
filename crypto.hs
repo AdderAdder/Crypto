@@ -3,7 +3,7 @@ import qualified Data.List as List
 import qualified System.Random as Random
 import qualified Data.Bits as Bits
 import qualified Data.ByteString.Lazy as ByteS
-import Data.ByteString.Builder (integerDec,toLazyByteString)
+import Data.Int (Int64)
 import GenerateKey (generateKey)
 -- Used for debugging purpose, remove in final version.
 -- To print binary representation use command: showIntAtBase 2 intToDigit number ""
@@ -42,26 +42,26 @@ rsa :: Mode -> ByteS.ByteString -> Integer -> Integer -> ByteS.ByteString
 rsa mode file n exp = rsa' file n exp chunkSize byteSizeOfAns
                     where
                     blockSize = floor $ logBase 2 $ fromIntegral n
-                    tmp = div blockSize 8 :: Integer
+                    tmp = div blockSize 8
                     chunkSize = if mode == Encrypt then tmp else (tmp+1)
                     byteSizeOfAns = fromIntegral  $ if mode == Encrypt then chunkSize+1 else chunkSize-1
 
 -- Core function of rsa that recursively takes a chunk of the data and apply rsa
 -- encryption/decryption on that chunk. Then the new number is transformed into
 -- a bytestring.
-rsa' :: ByteS.ByteString -> Integer -> Integer -> Integer -> ByteS.ByteString
+rsa' :: ByteS.ByteString -> Integer -> Integer -> Int64 -> Integer -> ByteS.ByteString
 rsa' file n exp chunk bytes
  | file == ByteS.empty = ByteS.empty
- | otherwise = trace ("Append chunk of bytestring: " ++ show byteEncryptedNum) $ ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
+ | otherwise = trace ("Append chunk of bytestring: " ++ show byteEncryptedNum) $ ByteS.append byteEncryptedNum (rsa' (ByteS.drop chunk file) n exp chunk bytes)
               where
               bitNum = trace ("Chunk of bytestring: " ++ show (ByteS.take chunk file)) $ ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take chunk file)
               num = fromIntegral bitNum :: Integer
               encryptNum = trace ("Num: " ++ show num) $ fromIntegral (powMod num exp n) :: Integer
-              byteEncryptedNum = trace ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) numToByteArray encryptNum bytes
+              byteEncryptedNum = trace ("Num after manipulation: " ++ show encryptNum) $ (ByteS.pack . map fromIntegral) $ numToByteArray encryptNum bytes
 
 -- Transform a large integer to an array of ints (that are 1 byte each).
 numToByteArray :: Integer -> Integer -> [Int]
 numToByteArray num iter = reverse $ numToIntArray num iter
                         where
                         numToIntArray _ 0 = []
-                        numToIntArray num iter = (fromIntegral (255 Bits..&. num)):(numToByteString (Bits.shiftR num 8) (iter-1))
+                        numToIntArray num iter = (fromIntegral (255 Bits..&. num)):(numToIntArray (Bits.shiftR num 8) (iter-1))
