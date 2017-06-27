@@ -32,8 +32,9 @@ process (mode:fileName:n:c:[]) = do file <- (ByteS.readFile fileName)
                                     newFileName = if (read mode) == Encrypt then "encrypt" ++ fileName else "decrypt" ++ fileName
 process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decryption) use format 'Encrypt/Decrupt fileToEncrypt productOfPrime exponent'."
 
+powMod num 0 _ = num
 powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
-                  where rec = powMod (mod (num*num) n) (div exp 2) n
+                  where rec = trace ("Exp: " ++ show exp) $ powMod (mod (num*num) n) (div exp 2) n
 
 -- Encryption/decryption (depending on what mode is given as parameter) of the content.
 -- Note that padding is done to the content so it can be choped up into bytes.
