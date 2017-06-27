@@ -1,6 +1,6 @@
 Secret message in a file. This is a test-file used to test the implemented RSA encryption.
 
-Here is a bunch of nonsense which you don't need to pay any attention.
+Here is a bunch of nonsense which you don't need to pay any attention to.
 
 This statement is false :)
 Is the earth really round?
