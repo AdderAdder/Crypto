@@ -42,12 +42,12 @@ powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
 rsa :: Mode -> ByteS.ByteString -> Integer -> Integer -> ByteS.ByteString
 rsa mode file n exp
  | file == ByteS.empty = ByteS.empty
- | otherwise = ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
+ | otherwise = trace ("Append chunk of bytestring: " ++ show byteEncryptedNum) $ ByteS.append byteEncryptedNum (rsa Encrypt (ByteS.drop q file) n exp)
               where
               blockSize = floor $ logBase 2 $ fromIntegral n
               tmp = div blockSize 8
               q = if mode == Encrypt then tmp else (tmp+1)
-              bitNum = ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take q file)
+              bitNum = trace ("Chunk of bytestring: " ++ show (ByteS.take q file)) $ ByteS.foldl (\acc w -> (fromIntegral w) Bits..|. (Bits.shiftL acc 8) :: Integer) Bits.zeroBits (ByteS.take q file)
               num = fromIntegral bitNum :: Integer
               encryptNum = trace ("Num: " ++ show num) $ fromIntegral (powMod num exp n) :: Integer
               byteSizeOfEncrypt = fromIntegral  $ if mode == Encrypt then q+1 else q-1
