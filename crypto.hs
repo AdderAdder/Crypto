@@ -36,12 +36,12 @@ process (fileName:[]) = do file <- (ByteS.readFile fileName)
                            let (n,e,d) = generateKey seedFirstPrime randSeed
                            writeFile "rsaEncryptionKey.txt" $ (show n) ++ " " ++ (show e)
                            writeFile "rsaDecryptionKey.txt" $ (show n) ++ " " ++ (show d)
-                           ByteS.writeFile ("encrypt" ++ fileName) (rsa Encrypt file n e)
+                           ByteS.writeFile ("encrypted_" ++ fileName) (rsa Encrypt file n e)
 process (mode:fileName:n:c:[]) = do file <- (ByteS.readFile fileName)
                                     ByteS.writeFile newFileName (rsa (read mode) file (read n :: Integer) (read c :: Integer))
                                     where
-                                    newFileName = if (read mode) == Encrypt then "encrypt" ++ fileName else "decrypt" ++ fileName
-process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption (or decryption) use format 'Encrypt/Decrupt fileToEncrypt productOfPrime exponent'."
+                                    newFileName = if (read mode) == Encrypt then "encrypted_" ++ fileName else "decrypted_" ++ fileName
+process _ = putStrLn "Error when parsing argument.\nPlease enter a filepath to the file that you wish to encrypt.\nIf you want to specify the key to use for encryption/decryption use format\n'Encrypt/Decrypt fileToEncrypt moduloNumber exponent'."
 
 powMod :: Integer -> Integer -> Integer -> Integer
 powMod _ 0 _ = 1
