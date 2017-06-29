@@ -22,5 +22,5 @@ cabal.project.local
 *.png
 rsaDecryptionKey.txt
 rsaEncryptionKey.txt
-encrypttest.txt
-decryptencrypttest.txt
+encrypted_test.txt
+decrypted_encrypted_test.txt
