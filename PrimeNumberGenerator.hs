@@ -9,7 +9,7 @@ generatePrime b seed =
   let number = generateBitNumber b seed
       searchResult = searchForPrime number (2*b) seed
       newSeed = Random.mkStdGen (fst (Random.random seed))
-  in if isPrime number 100 seed then number
+  in if isPrime number 20 seed then number
      else if searchResult /= Nothing then (\(Just x) -> x) searchResult
      else generatePrime b newSeed
 
@@ -26,7 +26,7 @@ generateBitNumber b seed = (Bits.setBit num 0) :: Integer
 searchForPrime :: Integer -> Int -> Random.StdGen -> Maybe Integer
 searchForPrime _ 0 _ = Nothing
 searchForPrime number iteration seed
-  | isPrime (number+2) 100 seed = Just (number+2)
+  | isPrime (number+2) 20 seed = Just (number+2)
   | otherwise = searchForPrime (number+2) (iteration-1) seed
 
 -- Preformes mod (num**exp) n but faster through repeated squaring.
@@ -37,13 +37,21 @@ powMod num exp n = if mod exp 2 == 0 then rec else mod (num*rec) n
 
 -- Miller-Rabin primality test based on pseudocode found at https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
 isPrime :: Integer -> Int -> Random.StdGen -> Bool
-isPrime num k seed = foldl (\acc val -> if (powMod val d num) == 1 || (powMod val d num) == (num-1)
-                    then True && acc else (check (powMod val d num) (r-1) num) && acc) True randNums
+isPrime num k seed = iterate randNums
                     where
                     randNums = map (\x -> 2 + (mod x (num-4))) (take k (Random.randoms seed))
                     (r,d) = factor (num-1) 0
+
                     factor :: Integer -> Integer -> (Integer,Integer)
                     factor x r = if mod x 2 == 0 then factor (div x 2) (r+1) else (r,x)
+
+                    iterate :: [Integer] -> Bool
+                    iterate [] = True
+                    iterate (x:xs) = let calc = (powMod x d num)
+                                     in if calc == 1 || calc == (num-1) then iterate xs
+                                     else if not (check calc (r-1) num)
+                                     then False else iterate xs
+
                     check :: Integer -> Integer -> Integer -> Bool
                     check _ (-1) _ = False -- Needed if r = 0 as (r-1) is the -1. This happens for example if num = 22
                     check _ 0 _ = False
