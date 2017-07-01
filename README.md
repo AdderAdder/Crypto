@@ -10,9 +10,11 @@ Fundamental knowledge about the encryption method and how to implement it was ac
 
 ## Short description of project
 
-The general program takes a file and encrypts/decrypts the content of the file. The program then stores the encrypted/decrypted content in a new file named either encrypted_ + OldFileName or decrypted_ + OldFileName. The program should work if you have the full Haskell Platform installed.
+The general program takes a file and encrypts/decrypts the content of the file. The program then stores the encrypted/decrypted content in a new file named either **encrypted_ + OldFileName** or **decrypted_ + OldFileName**. The program should work if you have the full Haskell Platform installed.
 
-**Crypto.hs** is the main file and should be compiled. You can then run the program without any arguments to learn about the input format. When encryption keys are generated they are stored in the files encryptionKey.txt and decryptionKey.txt as plain text numbers separated by a whitespace. If new keys are generated these files will be overwritten and the old keys thus deleted (can be avoided by renaming the files before generating new keys).
+No padding method is used, the file is simply divided into almost equally big chunks and then each chunk is encrypted/decrypted separately.
+
+**Crypto.hs** is the main file and should be compiled. You can then run the program without any arguments to learn about the input format. When encryption keys are generated they are stored in the files **encryptionKey.txt** and **decryptionKey.txt** as plain text numbers separated by a whitespace. If new keys are generated these files will be overwritten and the old keys thus deleted (can be avoided by renaming the files before generating new keys).
 
 **GenerateKey.hs** contains the code for generating the encryption keys. Here one can also modify the size of the primes used to generate the keys (currently set to 512 bits).
 
