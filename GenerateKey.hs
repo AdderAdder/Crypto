@@ -12,16 +12,17 @@ primeNumberBitLength = 512
 -- Output is on the form (cofNum1,cofNum2,gcd)
 extendedGCD :: Integer -> Integer -> (Integer,Integer,Integer)
 extendedGCD num 0 = (1,0,num)
-extendedGCD num1 num2 = let (quot,rem) = quotRem num1 num2
-                            (cof1,cof2,gcdAns) = extendedGCD num2 rem
-                        in (cof2,cof1-quot*cof2,gcdAns)
+extendedGCD num1 num2 = (cof2,cof1-quot*cof2,gcdAns)
+                       where
+                         (quot,rem) = quotRem num1 num2
+                         (cof1,cof2,gcdAns) = extendedGCD num2 rem
 
 -- Based on the code sample from https://rosettacode.org/wiki/Modular_inverse#Haskell
 -- Output the value x that solve num1*x = 1 (mod num2)
 -- Note that an error is thrown if no such x exist.
 multiplicativeInverse :: Integer -> Integer -> Integer
-multiplicativeInverse num1 num2 = let (x,_,gcdAns) = extendedGCD num1 num2
-                                  in if gcdAns /= 1 then error "No multiplicative inverse found!" else x
+multiplicativeInverse num1 num2 = if gcdAns /= 1 then error "No multiplicative inverse found!" else x
+                                 where (x,_,gcdAns) = extendedGCD num1 num2
 
 -- Takes a seed to generate two prime numbers and returns a tuple
 -- on the form (n,e,d). (n,e) is used for encryption and (n,d) is used for decryption.
