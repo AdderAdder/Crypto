@@ -3,7 +3,7 @@
 This is a simple test project for trying to implement an RSA encryption program in the haskell programming language. The purpose of the project was simply to learn the fundamentals of RSA encryption and how to create a naive implementation. Haskell was chosen because I felt I needed more experience in the language.
 
 Fundamental knowledge about the encryption method and how to implement it was acquired through reading the following online materials
-* [The wikipedia page on RSA](https://simple.wikipedia.org/wiki/RSA_(algorithm%29)
+* [The wikipedia page on RSA](https://simple.wikipedia.org/wiki/RSA_(algorithm))
 * [A post about implementing RSA by Sahand Saba](http://sahandsaba.com/cryptography-rsa-part-1.html)
 * [Slides about implementing RSA in Java](http://db.cs.duke.edu/courses/cps001/summer04/lectures/Lecture16.pdf)
 * [The wikipedia page on Miller-Rabin's primality test](https://en.wikipedia.org/wiki/Miller–Rabin_primality_test)
