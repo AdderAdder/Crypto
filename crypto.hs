@@ -29,7 +29,7 @@ process (m:fileName:n:c:[]) = do file <- (ByteS.readFile fileName)
                                  where
                                  mode = read m :: Mode
                                  newFileName = if mode == Encrypt then "encrypted_" ++ fileName else "decrypted_" ++ fileName
-process _ = putStrLn "Error when parsing argument.\nPlease use one of the follow formats for the arguments.\n1) 'fileToEncrypt' (will create new keys in the process and overwrite the old keys)\n2) 'Encrypt/Decrypt fileToEncrypt moduloNumber exponent'."
+process _ = putStrLn "Error when parsing argument.\nPlease use one of the follow formats for the arguments.\n1) 'fileToEncrypt' (will create new keys in the process and overwrite the old keys)\n2) 'Encrypt/Decrypt fileToEncrypt moduloNumber exponent'"
 
 -- Encryption/decryption (depending on what mode is given as parameter) of the content.
 rsa :: Mode -> ByteS.ByteString -> Integer -> Integer -> ByteS.ByteString
