@@ -4,7 +4,7 @@ import qualified System.Random as Random
 import PrimeNumberGenerator (generatePrime)
 
 -- How big prime numbers to generate. Given in bits.
-primeNumberBitLength = 1024 
+primeNumberBitLength = 512
 
 -- Based on the code sample from https://rosettacode.org/wiki/Modular_inverse#Haskell
 -- A more detailed description of how the algorithm works can be found at https://stackoverflow.com/questions/12544086/calculate-the-extended-gcd-using-a-recursive-function-in-python
