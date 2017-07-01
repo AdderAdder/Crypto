@@ -1,6 +1,6 @@
 # Crypto
 
-This is a simple test project for trying to implement an RSA encryption program in the haskell programming language. The purpose of the project was simply to learn the fundamentals of RSA encryption and how to create a naive implementation. Haskell was chosen because I felt I needed more experience in the language.
+This is a simple test project for trying to implement a RSA encryption program in the haskell programming language. The purpose of the project was simply to learn the fundamentals of RSA encryption and how to create a naive implementation. Haskell was chosen because I felt I needed more experience in the language.
 
 Fundamental knowledge about the encryption method and how to implement it was acquired through reading the following online materials
 * [The wikipedia page on RSA](https://simple.wikipedia.org/wiki/RSA_(algorithm))
