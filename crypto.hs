@@ -1,26 +1,13 @@
+module Main where
+
 import qualified System.Environment as Sys
-import qualified Data.List as List
 import qualified System.Random as Random
 import qualified Data.Bits as Bits
 import qualified Data.ByteString.Lazy as ByteS
 import Data.Int (Int64)
 import GenerateKey (generateKey)
 import PrimeNumberGenerator (powMod)
--- Used for debugging purpose, remove in final version.
--- To print binary representation use command: showIntAtBase 2 intToDigit number ""
-import Numeric (showIntAtBase)
-import Data.Char (intToDigit)
-import Debug.Trace (trace)
-
--- Constant variable indicating if we are in debug-mode.
-debugConst = False
-
-debug :: String -> a -> a
-debug message expression
-  | debugConst = trace message expression
-  | otherwise = expression
-
--- Here the actual program start.
+import Debug (debug)
 
 data Mode = Encrypt | Decrypt deriving (Read,Eq)
 
