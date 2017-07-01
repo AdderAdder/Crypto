@@ -20,8 +20,8 @@ cabal.project.local
 .HTF/
 *.exe
 *.png
-rsaDecryptionKey.txt
-rsaEncryptionKey.txt
+decryptionKey.txt
+encryptionKey.txt
 encrypted_test.txt
 decrypted_encrypted_test.txt
 crypto
